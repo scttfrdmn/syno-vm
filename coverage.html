@@ -1,0 +1,1446 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>syno-vm: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/scttfrdmn/syno-vm/cmd/syno-vm/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/scttfrdmn/syno-vm/internal/cmd/config.go (17.0%)</option>
+				
+				<option value="file2">github.com/scttfrdmn/syno-vm/internal/cmd/create.go (31.8%)</option>
+				
+				<option value="file3">github.com/scttfrdmn/syno-vm/internal/cmd/list.go (11.1%)</option>
+				
+				<option value="file4">github.com/scttfrdmn/syno-vm/internal/cmd/root.go (18.2%)</option>
+				
+				<option value="file5">github.com/scttfrdmn/syno-vm/internal/cmd/template.go (20.5%)</option>
+				
+				<option value="file6">github.com/scttfrdmn/syno-vm/internal/cmd/vm.go (9.4%)</option>
+				
+				<option value="file7">github.com/scttfrdmn/syno-vm/internal/synology/client.go (16.4%)</option>
+				
+				<option value="file8">github.com/scttfrdmn/syno-vm/internal/synology/ssh.go (0.0%)</option>
+				
+				<option value="file9">github.com/scttfrdmn/syno-vm/test/mock/mock_client.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/scttfrdmn/syno-vm/internal/cmd"
+)
+
+func main() <span class="cov0" title="0">{
+        if err := cmd.Execute(); err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintln(os.Stderr, err)
+                os.Exit(1)
+        }</span>
+}</pre>
+		
+		<pre class="file" id="file1" style="display: none">package cmd
+
+import (
+        "fmt"
+        "os"
+        "path/filepath"
+
+        "github.com/spf13/cobra"
+        "github.com/spf13/viper"
+)
+
+// configCmd represents the config command
+var configCmd = &amp;cobra.Command{
+        Use:   "config",
+        Short: "Manage syno-vm configuration",
+        Long:  `Configure connection settings for your Synology NAS.`,
+}
+
+var configSetCmd = &amp;cobra.Command{
+        Use:   "set",
+        Short: "Set configuration values",
+        Long:  `Set configuration values for syno-vm.`,
+        RunE:  runConfigSet,
+}
+
+var configGetCmd = &amp;cobra.Command{
+        Use:   "get [key]",
+        Short: "Get configuration values",
+        Long:  `Get configuration values from syno-vm config.`,
+        Args:  cobra.MaximumNArgs(1),
+        RunE:  runConfigGet,
+}
+
+var configListCmd = &amp;cobra.Command{
+        Use:   "list",
+        Short: "List all configuration",
+        Long:  `List all configuration values.`,
+        RunE:  runConfigList,
+}
+
+var (
+        host     string
+        username string
+        port     int
+        keyfile  string
+        timeout  int
+)
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(configCmd)
+        configCmd.AddCommand(configSetCmd)
+        configCmd.AddCommand(configGetCmd)
+        configCmd.AddCommand(configListCmd)
+
+        // Set command flags
+        configSetCmd.Flags().StringVar(&amp;host, "host", "", "Synology NAS hostname or IP address")
+        configSetCmd.Flags().StringVar(&amp;username, "username", "", "SSH username")
+        configSetCmd.Flags().IntVar(&amp;port, "port", 22, "SSH port")
+        configSetCmd.Flags().StringVar(&amp;keyfile, "keyfile", "", "SSH private key file path")
+        configSetCmd.Flags().IntVar(&amp;timeout, "timeout", 30, "SSH connection timeout in seconds")
+}</span>
+
+func runConfigSet(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        configChanged := false
+
+        if cmd.Flags().Changed("host") </span><span class="cov0" title="0">{
+                viper.Set("host", host)
+                configChanged = true
+                fmt.Printf("Set host: %s\n", host)
+        }</span>
+
+        <span class="cov0" title="0">if cmd.Flags().Changed("username") </span><span class="cov0" title="0">{
+                viper.Set("username", username)
+                configChanged = true
+                fmt.Printf("Set username: %s\n", username)
+        }</span>
+
+        <span class="cov0" title="0">if cmd.Flags().Changed("port") </span><span class="cov0" title="0">{
+                viper.Set("port", port)
+                configChanged = true
+                fmt.Printf("Set port: %d\n", port)
+        }</span>
+
+        <span class="cov0" title="0">if cmd.Flags().Changed("keyfile") </span><span class="cov0" title="0">{
+                // Expand tilde to home directory
+                if keyfile[:2] == "~/" </span><span class="cov0" title="0">{
+                        home, err := os.UserHomeDir()
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to get home directory: %w", err)
+                        }</span>
+                        <span class="cov0" title="0">keyfile = filepath.Join(home, keyfile[2:])</span>
+                }
+                <span class="cov0" title="0">viper.Set("keyfile", keyfile)
+                configChanged = true
+                fmt.Printf("Set keyfile: %s\n", keyfile)</span>
+        }
+
+        <span class="cov0" title="0">if cmd.Flags().Changed("timeout") </span><span class="cov0" title="0">{
+                viper.Set("timeout", timeout)
+                configChanged = true
+                fmt.Printf("Set timeout: %d\n", timeout)
+        }</span>
+
+        <span class="cov0" title="0">if !configChanged </span><span class="cov0" title="0">{
+                return fmt.Errorf("no configuration values provided")
+        }</span>
+
+        // Write config to file
+        <span class="cov0" title="0">return viper.WriteConfig()</span>
+}
+
+func runConfigGet(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        if len(args) == 0 </span><span class="cov0" title="0">{
+                return runConfigList(cmd, args)
+        }</span>
+
+        <span class="cov0" title="0">key := args[0]
+        value := viper.Get(key)
+        if value == nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("configuration key '%s' not found", key)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("%s: %v\n", key, value)
+        return nil</span>
+}
+
+func runConfigList(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        fmt.Println("Current configuration:")
+
+        keys := []string{"host", "username", "port", "keyfile", "timeout"}
+        for _, key := range keys </span><span class="cov0" title="0">{
+                value := viper.Get(key)
+                if value != nil </span><span class="cov0" title="0">{
+                        fmt.Printf("  %s: %v\n", key, value)
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package cmd
+
+import (
+        "fmt"
+
+        "github.com/spf13/cobra"
+        "github.com/scttfrdmn/syno-vm/internal/synology"
+)
+
+// createCmd represents the create command
+var createCmd = &amp;cobra.Command{
+        Use:   "create",
+        Short: "Create a new virtual machine",
+        Long:  `Create a new virtual machine with specified configuration.`,
+        RunE:  runCreate,
+}
+
+var (
+        createName     string
+        createTemplate string
+        createCPU      int
+        createMemory   int
+        createStorage  string
+)
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(createCmd)
+
+        createCmd.Flags().StringVar(&amp;createName, "name", "", "Name of the virtual machine (required)")
+        createCmd.Flags().StringVar(&amp;createTemplate, "template", "", "Template to use for VM creation")
+        createCmd.Flags().IntVar(&amp;createCPU, "cpu", 2, "Number of CPU cores")
+        createCmd.Flags().IntVar(&amp;createMemory, "memory", 2048, "Memory in MB")
+        createCmd.Flags().StringVar(&amp;createStorage, "storage", "", "Storage configuration")
+
+        createCmd.MarkFlagRequired("name") // nolint:errcheck // CLI flag setup
+}</span>
+
+func runCreate(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        if createName == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("VM name is required")
+        }</span>
+
+        <span class="cov0" title="0">client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">vmConfig := synology.VMConfig{
+                Name:     createName,
+                Template: createTemplate,
+                CPU:      createCPU,
+                Memory:   createMemory,
+                Storage:  createStorage,
+        }
+
+        fmt.Printf("Creating VM: %s\n", createName)
+        fmt.Printf("  CPU: %d cores\n", createCPU)
+        fmt.Printf("  Memory: %d MB\n", createMemory)
+        if createTemplate != "" </span><span class="cov0" title="0">{
+                fmt.Printf("  Template: %s\n", createTemplate)
+        }</span>
+
+        <span class="cov0" title="0">if err := client.CreateVM(vmConfig); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create VM: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("VM %s created successfully\n", createName)
+        return nil</span>
+}</pre>
+		
+		<pre class="file" id="file3" style="display: none">package cmd
+
+import (
+        "fmt"
+
+        "github.com/spf13/cobra"
+        "github.com/scttfrdmn/syno-vm/internal/synology"
+)
+
+// listCmd represents the list command
+var listCmd = &amp;cobra.Command{
+        Use:   "list",
+        Short: "List virtual machines",
+        Long:  `List all virtual machines on the Synology NAS.`,
+        RunE:  runList,
+}
+
+var (
+        listAll bool
+)
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(listCmd)
+
+        listCmd.Flags().BoolVarP(&amp;listAll, "all", "a", false, "Show all VMs including stopped ones")
+}</span>
+
+func runList(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">vms, err := client.ListVMs()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to list VMs: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(vms) == 0 </span><span class="cov0" title="0">{
+                fmt.Println("No virtual machines found.")
+                return nil
+        }</span>
+
+        // Print header
+        <span class="cov0" title="0">fmt.Printf("%-20s %-15s %-10s %-15s\n", "NAME", "STATUS", "CPU", "MEMORY")
+        fmt.Println("------------------------------------------------------------")
+
+        // Print VMs
+        for _, vm := range vms </span><span class="cov0" title="0">{
+                if !listAll &amp;&amp; vm.Status == "stopped" </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">fmt.Printf("%-20s %-15s %-10s %-15s\n",
+                        vm.Name,
+                        vm.Status,
+                        fmt.Sprintf("%d cores", vm.CPU),
+                        fmt.Sprintf("%d MB", vm.Memory))</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}</pre>
+		
+		<pre class="file" id="file4" style="display: none">package cmd
+
+import (
+        "fmt"
+        "os"
+
+        "github.com/spf13/cobra"
+        "github.com/spf13/viper"
+)
+
+var (
+        cfgFile string
+        verbose bool
+)
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &amp;cobra.Command{
+        Use:   "syno-vm",
+        Short: "A CLI tool for managing Synology Virtual Machine Manager",
+        Long: `syno-vm is a command-line tool for managing virtual machines on Synology NAS
+devices with Virtual Machine Manager (VMM). It provides an easy way to create,
+start, stop, and manage VMs through Synology's VMM API.
+
+This tool is adapted from qnap-vm for Synology DSM 7.x+ systems.`,
+        Version: "0.1.0",
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() error <span class="cov0" title="0">{
+        return rootCmd.Execute()
+}</span>
+
+func init() <span class="cov8" title="1">{
+        cobra.OnInitialize(initConfig)
+
+        // Global flags
+        rootCmd.PersistentFlags().StringVar(&amp;cfgFile, "config", "", "config file (default is $HOME/.syno-vm/config.yaml)")
+        rootCmd.PersistentFlags().BoolVarP(&amp;verbose, "verbose", "v", false, "verbose output")
+
+        // Bind flags to viper
+        viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose")) // nolint:errcheck // CLI setup
+}</span>
+
+// initConfig reads in config file and ENV variables.
+func initConfig() <span class="cov0" title="0">{
+        if cfgFile != "" </span><span class="cov0" title="0">{
+                // Use config file from the flag.
+                viper.SetConfigFile(cfgFile)
+        }</span> else<span class="cov0" title="0"> {
+                // Find home directory.
+                home, err := os.UserHomeDir()
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Fprintln(os.Stderr, err)
+                        os.Exit(1)
+                }</span>
+
+                // Search config in home directory with name ".syno-vm" (without extension).
+                <span class="cov0" title="0">configDir := home + "/.syno-vm"
+                viper.AddConfigPath(configDir)
+                viper.SetConfigType("yaml")
+                viper.SetConfigName("config")
+
+                // Create config directory if it doesn't exist
+                if _, err := os.Stat(configDir); os.IsNotExist(err) </span><span class="cov0" title="0">{
+                        _ = os.MkdirAll(configDir, 0755) // Best effort directory creation
+                }</span>
+        }
+
+        <span class="cov0" title="0">viper.AutomaticEnv() // read in environment variables that match
+
+        // If a config file is found, read it in.
+        if err := viper.ReadInConfig(); err == nil &amp;&amp; verbose </span><span class="cov0" title="0">{
+                fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+        }</span>
+
+        // Set default values
+        <span class="cov0" title="0">viper.SetDefault("port", 22)
+        viper.SetDefault("timeout", 30)</span>
+}</pre>
+		
+		<pre class="file" id="file5" style="display: none">package cmd
+
+import (
+        "fmt"
+
+        "github.com/spf13/cobra"
+        "github.com/scttfrdmn/syno-vm/internal/synology"
+)
+
+// templateCmd represents the template command
+var templateCmd = &amp;cobra.Command{
+        Use:   "template",
+        Short: "Manage VM templates",
+        Long:  `Manage virtual machine templates.`,
+}
+
+var templateListCmd = &amp;cobra.Command{
+        Use:   "list",
+        Short: "List available VM templates",
+        Long:  `List all available VM templates.`,
+        RunE:  runTemplateList,
+}
+
+var templateCreateCmd = &amp;cobra.Command{
+        Use:   "create",
+        Short: "Create a new VM template",
+        Long:  `Create a new VM template from an existing VM.`,
+        RunE:  runTemplateCreate,
+}
+
+var templateDeleteCmd = &amp;cobra.Command{
+        Use:   "delete &lt;template-name&gt;",
+        Short: "Delete a VM template",
+        Long:  `Delete a VM template by name.`,
+        Args:  cobra.ExactArgs(1),
+        RunE:  runTemplateDelete,
+}
+
+var (
+        templateName   string
+        templateFromVM string
+)
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(templateCmd)
+        templateCmd.AddCommand(templateListCmd)
+        templateCmd.AddCommand(templateCreateCmd)
+        templateCmd.AddCommand(templateDeleteCmd)
+
+        templateCreateCmd.Flags().StringVar(&amp;templateName, "name", "", "Name of the template (required)")
+        templateCreateCmd.Flags().StringVar(&amp;templateFromVM, "from-vm", "", "Create template from existing VM (required)")
+        templateCreateCmd.MarkFlagRequired("name")   // nolint:errcheck // CLI setup
+        templateCreateCmd.MarkFlagRequired("from-vm") // nolint:errcheck // CLI setup
+}</span>
+
+func runTemplateList(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">templates, err := client.ListTemplates()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to list templates: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(templates) == 0 </span><span class="cov0" title="0">{
+                fmt.Println("No templates found.")
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("%-20s %-20s %-15s\n", "NAME", "DESCRIPTION", "OS")
+        fmt.Println("-------------------------------------------------------")
+
+        for _, template := range templates </span><span class="cov0" title="0">{
+                fmt.Printf("%-20s %-20s %-15s\n",
+                        template.Name,
+                        template.Description,
+                        template.OS)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func runTemplateCreate(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Creating template '%s' from VM '%s'\n", templateName, templateFromVM)
+
+        if err := client.CreateTemplate(templateName, templateFromVM); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create template: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Template %s created successfully\n", templateName)
+        return nil</span>
+}
+
+func runTemplateDelete(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        templateName := args[0]
+
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Deleting template: %s\n", templateName)
+
+        if err := client.DeleteTemplate(templateName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to delete template: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Template %s deleted successfully\n", templateName)
+        return nil</span>
+}</pre>
+		
+		<pre class="file" id="file6" style="display: none">package cmd
+
+import (
+        "fmt"
+
+        "github.com/spf13/cobra"
+        "github.com/scttfrdmn/syno-vm/internal/synology"
+)
+
+// startCmd represents the start command
+var startCmd = &amp;cobra.Command{
+        Use:   "start &lt;vm-name&gt;",
+        Short: "Start a virtual machine",
+        Long:  `Start a virtual machine by name.`,
+        Args:  cobra.ExactArgs(1),
+        RunE:  runStart,
+}
+
+// stopCmd represents the stop command
+var stopCmd = &amp;cobra.Command{
+        Use:   "stop &lt;vm-name&gt;",
+        Short: "Stop a virtual machine",
+        Long:  `Stop a virtual machine by name.`,
+        Args:  cobra.ExactArgs(1),
+        RunE:  runStop,
+}
+
+// restartCmd represents the restart command
+var restartCmd = &amp;cobra.Command{
+        Use:   "restart &lt;vm-name&gt;",
+        Short: "Restart a virtual machine",
+        Long:  `Restart a virtual machine by name.`,
+        Args:  cobra.ExactArgs(1),
+        RunE:  runRestart,
+}
+
+// statusCmd represents the status command
+var statusCmd = &amp;cobra.Command{
+        Use:   "status &lt;vm-name&gt;",
+        Short: "Show virtual machine status",
+        Long:  `Show detailed status information for a virtual machine.`,
+        Args:  cobra.ExactArgs(1),
+        RunE:  runStatus,
+}
+
+// deleteCmd represents the delete command
+var deleteCmd = &amp;cobra.Command{
+        Use:   "delete &lt;vm-name&gt;",
+        Short: "Delete a virtual machine",
+        Long:  `Delete a virtual machine by name. This action is irreversible.`,
+        Args:  cobra.ExactArgs(1),
+        RunE:  runDelete,
+}
+
+var (
+        force bool
+)
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(startCmd)
+        rootCmd.AddCommand(stopCmd)
+        rootCmd.AddCommand(restartCmd)
+        rootCmd.AddCommand(statusCmd)
+        rootCmd.AddCommand(deleteCmd)
+
+        deleteCmd.Flags().BoolVarP(&amp;force, "force", "f", false, "Force delete without confirmation")
+}</span>
+
+func runStart(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        vmName := args[0]
+
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Starting VM: %s\n", vmName)
+
+        if err := client.StartVM(vmName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to start VM: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("VM %s started successfully\n", vmName)
+        return nil</span>
+}
+
+func runStop(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        vmName := args[0]
+
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Stopping VM: %s\n", vmName)
+
+        if err := client.StopVM(vmName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to stop VM: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("VM %s stopped successfully\n", vmName)
+        return nil</span>
+}
+
+func runRestart(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        vmName := args[0]
+
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Restarting VM: %s\n", vmName)
+
+        if err := client.RestartVM(vmName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to restart VM: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("VM %s restarted successfully\n", vmName)
+        return nil</span>
+}
+
+func runStatus(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        vmName := args[0]
+
+        client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">vm, err := client.GetVMStatus(vmName)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to get VM status: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Virtual Machine: %s\n", vm.Name)
+        fmt.Printf("Status: %s\n", vm.Status)
+        fmt.Printf("CPU Cores: %d\n", vm.CPU)
+        fmt.Printf("Memory: %d MB\n", vm.Memory)
+        fmt.Printf("Storage: %s\n", vm.Storage)
+        if vm.IPAddress != "" </span><span class="cov0" title="0">{
+                fmt.Printf("IP Address: %s\n", vm.IPAddress)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func runDelete(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        vmName := args[0]
+
+        if !force </span><span class="cov0" title="0">{
+                fmt.Printf("Are you sure you want to delete VM '%s'? This action cannot be undone. (y/N): ", vmName)
+                var response string
+                _, _ = fmt.Scanln(&amp;response) // Ignore input errors for confirmation
+                if response != "y" &amp;&amp; response != "Y" &amp;&amp; response != "yes" </span><span class="cov0" title="0">{
+                        fmt.Println("Delete cancelled.")
+                        return nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">client, err := synology.NewClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create client: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Deleting VM: %s\n", vmName)
+
+        if err := client.DeleteVM(vmName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to delete VM: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("VM %s deleted successfully\n", vmName)
+        return nil</span>
+}</pre>
+		
+		<pre class="file" id="file7" style="display: none">package synology
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "strconv"
+        "time"
+
+        "github.com/spf13/viper"
+        "golang.org/x/crypto/ssh"
+)
+
+// Client represents a Synology VMM client
+type Client struct {
+        host       string
+        username   string
+        port       int
+        keyfile    string
+        timeout    time.Duration
+        sshClient  *ssh.Client
+}
+
+// VM represents a virtual machine
+type VM struct {
+        Name      string `json:"name"`
+        Status    string `json:"status"`
+        CPU       int    `json:"cpu"`
+        Memory    int    `json:"memory"`
+        Storage   string `json:"storage"`
+        IPAddress string `json:"ip_address,omitempty"`
+}
+
+// VMConfig represents VM configuration for creation
+type VMConfig struct {
+        Name     string
+        Template string
+        CPU      int
+        Memory   int
+        Storage  string
+}
+
+// Validate validates the VM configuration
+func (c VMConfig) Validate() error <span class="cov8" title="1">{
+        if c.Name == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("VM name is required")
+        }</span>
+        <span class="cov8" title="1">if c.CPU &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("CPU must be greater than 0")
+        }</span>
+        <span class="cov8" title="1">if c.Memory &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("memory must be greater than 0")
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Template represents a VM template
+type Template struct {
+        Name        string `json:"name"`
+        Description string `json:"description"`
+        OS          string `json:"os"`
+}
+
+// APIResponse represents a generic API response
+type APIResponse struct {
+        Success bool        `json:"success"`
+        Data    interface{} `json:"data,omitempty"`
+        Error   *APIError   `json:"error,omitempty"`
+}
+
+// APIError represents an API error
+type APIError struct {
+        Code    int    `json:"code"`
+        Message string `json:"message"`
+}
+
+// NewClient creates a new Synology VMM client
+func NewClient() (*Client, error) <span class="cov8" title="1">{
+        host := viper.GetString("host")
+        username := viper.GetString("username")
+        port := viper.GetInt("port")
+        keyfile := viper.GetString("keyfile")
+        timeout := viper.GetInt("timeout")
+
+        if host == "" </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("host not configured. Run 'syno-vm config set --host &lt;hostname&gt;'")
+        }</span>
+
+        <span class="cov8" title="1">if username == "" </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("username not configured. Run 'syno-vm config set --username &lt;username&gt;'")
+        }</span>
+
+        <span class="cov8" title="1">client := &amp;Client{
+                host:     host,
+                username: username,
+                port:     port,
+                keyfile:  keyfile,
+                timeout:  time.Duration(timeout) * time.Second,
+        }
+
+        return client, nil</span>
+}
+
+// Connect establishes an SSH connection to the Synology NAS
+func (c *Client) Connect() error <span class="cov0" title="0">{
+        if c.sshClient != nil </span><span class="cov0" title="0">{
+                return nil // Already connected
+        }</span>
+
+        <span class="cov0" title="0">config := &amp;ssh.ClientConfig{
+                User:            c.username,
+                HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+                Timeout:         c.timeout,
+        }
+
+        // Configure authentication
+        if c.keyfile != "" </span><span class="cov0" title="0">{
+                key, err := readPrivateKey(c.keyfile)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to read private key: %w", err)
+                }</span>
+                <span class="cov0" title="0">config.Auth = []ssh.AuthMethod{ssh.PublicKeys(key)}</span>
+        } else<span class="cov0" title="0"> {
+                // For password auth, we'd prompt here
+                return fmt.Errorf("password authentication not implemented yet. Please configure SSH key authentication")
+        }</span>
+
+        <span class="cov0" title="0">address := fmt.Sprintf("%s:%d", c.host, c.port)
+        client, err := ssh.Dial("tcp", address, config)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to connect to SSH server: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">c.sshClient = client
+        return nil</span>
+}
+
+// Disconnect closes the SSH connection
+func (c *Client) Disconnect() error <span class="cov0" title="0">{
+        if c.sshClient != nil </span><span class="cov0" title="0">{
+                return c.sshClient.Close()
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// ExecuteCommand executes a command on the Synology NAS via SSH
+func (c *Client) ExecuteCommand(command string) (string, error) <span class="cov0" title="0">{
+        if err := c.Connect(); err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">session, err := c.sshClient.NewSession()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to create SSH session: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{ _ = session.Close() }</span>() // Ensure session cleanup
+
+        <span class="cov0" title="0">var stdout bytes.Buffer
+        var stderr bytes.Buffer
+        session.Stdout = &amp;stdout
+        session.Stderr = &amp;stderr
+
+        if err := session.Run(command); err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("command failed: %s, stderr: %s", err, stderr.String())
+        }</span>
+
+        <span class="cov0" title="0">return stdout.String(), nil</span>
+}
+
+// ExecuteAPI executes a Synology API command via synowebapi
+func (c *Client) ExecuteAPI(api, method, version string, params map[string]string) (*APIResponse, error) <span class="cov0" title="0">{
+        cmd := fmt.Sprintf("synowebapi --exec api=%s method=%s version=%s", api, method, version)
+
+        for key, value := range params </span><span class="cov0" title="0">{
+                cmd += fmt.Sprintf(" %s=%s", key, value)
+        }</span>
+
+        <span class="cov0" title="0">output, err := c.ExecuteCommand(cmd)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("API command failed: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">var response APIResponse
+        if err := json.Unmarshal([]byte(output), &amp;response); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse API response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if !response.Success </span><span class="cov0" title="0">{
+                if response.Error != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("API error %d: %s", response.Error.Code, response.Error.Message)
+                }</span>
+                <span class="cov0" title="0">return nil, fmt.Errorf("API request failed")</span>
+        }
+
+        <span class="cov0" title="0">return &amp;response, nil</span>
+}
+
+// ListVMs lists all virtual machines
+func (c *Client) ListVMs() ([]VM, error) <span class="cov0" title="0">{
+        // In a real implementation, we would use the appropriate Synology API
+        // For now, this is a placeholder implementation
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Guest.Info", "list", "1", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Parse VM data from response
+        // This is a simplified example - actual implementation would parse the real API response
+        <span class="cov0" title="0">var vms []VM
+
+        // Mock data for demonstration - in real implementation, parse from response.Data
+        vms = append(vms, VM{
+                Name:      "test-vm",
+                Status:    "running",
+                CPU:       2,
+                Memory:    2048,
+                Storage:   "20GB",
+                IPAddress: "192.168.1.100",
+        })
+
+        return vms, nil</span>
+}
+
+// StartVM starts a virtual machine
+func (c *Client) StartVM(vmName string) error <span class="cov0" title="0">{
+        params := map[string]string{
+                "runner":     "admin",
+                "guest_name": vmName,
+        }
+
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Guest.Action", "poweron", "1", params)
+        return err
+}</span>
+
+// StopVM stops a virtual machine
+func (c *Client) StopVM(vmName string) error <span class="cov0" title="0">{
+        params := map[string]string{
+                "runner":     "admin",
+                "guest_name": vmName,
+        }
+
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Guest.Action", "poweroff", "1", params)
+        return err
+}</span>
+
+// RestartVM restarts a virtual machine
+func (c *Client) RestartVM(vmName string) error <span class="cov0" title="0">{
+        // First stop, then start
+        if err := c.StopVM(vmName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to stop VM: %w", err)
+        }</span>
+
+        // Wait a bit for shutdown
+        <span class="cov0" title="0">time.Sleep(5 * time.Second)
+
+        if err := c.StartVM(vmName); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to start VM: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// GetVMStatus gets the status of a specific virtual machine
+func (c *Client) GetVMStatus(vmName string) (*VM, error) <span class="cov0" title="0">{
+        params := map[string]string{
+                "guest_name": vmName,
+        }
+
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Guest.Info", "get", "1", params)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Parse VM data from response
+        // This is a placeholder - actual implementation would parse the real response
+        <span class="cov0" title="0">vm := &amp;VM{
+                Name:      vmName,
+                Status:    "running",
+                CPU:       2,
+                Memory:    2048,
+                Storage:   "20GB",
+                IPAddress: "192.168.1.100",
+        }
+
+        return vm, nil</span>
+}
+
+// CreateVM creates a new virtual machine
+func (c *Client) CreateVM(config VMConfig) error <span class="cov0" title="0">{
+        params := map[string]string{
+                "runner":     "admin",
+                "guest_name": config.Name,
+                "cpu":        strconv.Itoa(config.CPU),
+                "memory":     strconv.Itoa(config.Memory),
+        }
+
+        if config.Template != "" </span><span class="cov0" title="0">{
+                params["template"] = config.Template
+        }</span>
+
+        <span class="cov0" title="0">if config.Storage != "" </span><span class="cov0" title="0">{
+                params["storage"] = config.Storage
+        }</span>
+
+        <span class="cov0" title="0">_, err := c.ExecuteAPI("SYNO.Virtualization.API.Guest", "create", "1", params)
+        return err</span>
+}
+
+// DeleteVM deletes a virtual machine
+func (c *Client) DeleteVM(vmName string) error <span class="cov0" title="0">{
+        params := map[string]string{
+                "runner":     "admin",
+                "guest_name": vmName,
+        }
+
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Guest", "delete", "1", params)
+        return err
+}</span>
+
+// ListTemplates lists available VM templates
+func (c *Client) ListTemplates() ([]Template, error) <span class="cov0" title="0">{
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Template", "list", "1", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Parse template data from response
+        <span class="cov0" title="0">var templates []Template
+
+        // Mock data for demonstration
+        templates = append(templates, Template{
+                Name:        "ubuntu-20.04",
+                Description: "Ubuntu 20.04 LTS",
+                OS:          "Linux",
+        })
+
+        return templates, nil</span>
+}
+
+// CreateTemplate creates a new VM template
+func (c *Client) CreateTemplate(templateName, vmName string) error <span class="cov0" title="0">{
+        params := map[string]string{
+                "runner":        "admin",
+                "template_name": templateName,
+                "source_vm":     vmName,
+        }
+
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Template", "create", "1", params)
+        return err
+}</span>
+
+// DeleteTemplate deletes a VM template
+func (c *Client) DeleteTemplate(templateName string) error <span class="cov0" title="0">{
+        params := map[string]string{
+                "runner":        "admin",
+                "template_name": templateName,
+        }
+
+        _, err := c.ExecuteAPI("SYNO.Virtualization.API.Template", "delete", "1", params)
+        return err
+}</pre>
+		
+		<pre class="file" id="file8" style="display: none">package synology
+
+import (
+        "fmt"
+        "os"
+        "path/filepath"
+        "strings"
+
+        "golang.org/x/crypto/ssh"
+)
+
+// readPrivateKey reads and parses an SSH private key file
+func readPrivateKey(keyPath string) (ssh.Signer, error) <span class="cov0" title="0">{
+        // Expand tilde to home directory
+        if strings.HasPrefix(keyPath, "~/") </span><span class="cov0" title="0">{
+                home, err := os.UserHomeDir()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed to get home directory: %w", err)
+                }</span>
+                <span class="cov0" title="0">keyPath = filepath.Join(home, keyPath[2:])</span>
+        }
+
+        // Read the private key file
+        <span class="cov0" title="0">key, err := os.ReadFile(keyPath)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read private key file: %w", err)
+        }</span>
+
+        // Parse the private key
+        <span class="cov0" title="0">signer, err := ssh.ParsePrivateKey(key)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse private key: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return signer, nil</span>
+}
+
+// GenerateSSHKeyPair generates a new SSH key pair for authentication
+func GenerateSSHKeyPair(keyPath string) error <span class="cov0" title="0">{
+        // This is a placeholder for SSH key generation
+        // In a real implementation, you would generate an RSA or Ed25519 key pair
+        return fmt.Errorf("SSH key generation not implemented yet")
+}</pre>
+		
+		<pre class="file" id="file9" style="display: none">package mock
+
+import (
+        "fmt"
+
+        "github.com/scttfrdmn/syno-vm/internal/synology"
+)
+
+// MockClient is a mock implementation of the Synology client for testing
+type MockClient struct {
+        VMs       []synology.VM
+        Templates []synology.Template
+        Connected bool
+        Fail      map[string]bool // Map of method names that should fail
+}
+
+// NewMockClient creates a new mock client with sample data
+func NewMockClient() *MockClient <span class="cov0" title="0">{
+        return &amp;MockClient{
+                VMs: []synology.VM{
+                        {
+                                Name:      "test-vm-1",
+                                Status:    "running",
+                                CPU:       2,
+                                Memory:    2048,
+                                Storage:   "20GB",
+                                IPAddress: "192.168.1.100",
+                        },
+                        {
+                                Name:      "test-vm-2",
+                                Status:    "stopped",
+                                CPU:       4,
+                                Memory:    4096,
+                                Storage:   "40GB",
+                                IPAddress: "",
+                        },
+                },
+                Templates: []synology.Template{
+                        {
+                                Name:        "ubuntu-20.04",
+                                Description: "Ubuntu 20.04 LTS",
+                                OS:          "Linux",
+                        },
+                        {
+                                Name:        "windows-10",
+                                Description: "Windows 10 Pro",
+                                OS:          "Windows",
+                        },
+                },
+                Connected: true,
+                Fail:      make(map[string]bool),
+        }
+}</span>
+
+// Connect simulates connecting to the Synology NAS
+func (m *MockClient) Connect() error <span class="cov0" title="0">{
+        if m.Fail["Connect"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock connection failed")
+        }</span>
+        <span class="cov0" title="0">m.Connected = true
+        return nil</span>
+}
+
+// Disconnect simulates disconnecting from the Synology NAS
+func (m *MockClient) Disconnect() error <span class="cov0" title="0">{
+        if m.Fail["Disconnect"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock disconnect failed")
+        }</span>
+        <span class="cov0" title="0">m.Connected = false
+        return nil</span>
+}
+
+// ListVMs returns the mock VM list
+func (m *MockClient) ListVMs() ([]synology.VM, error) <span class="cov0" title="0">{
+        if m.Fail["ListVMs"] </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("mock ListVMs failed")
+        }</span>
+        <span class="cov0" title="0">return m.VMs, nil</span>
+}
+
+// StartVM simulates starting a VM
+func (m *MockClient) StartVM(vmName string) error <span class="cov0" title="0">{
+        if m.Fail["StartVM"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock StartVM failed")
+        }</span>
+
+        <span class="cov0" title="0">for i, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == vmName </span><span class="cov0" title="0">{
+                        m.VMs[i].Status = "running"
+                        return nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("VM not found: %s", vmName)</span>
+}
+
+// StopVM simulates stopping a VM
+func (m *MockClient) StopVM(vmName string) error <span class="cov0" title="0">{
+        if m.Fail["StopVM"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock StopVM failed")
+        }</span>
+
+        <span class="cov0" title="0">for i, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == vmName </span><span class="cov0" title="0">{
+                        m.VMs[i].Status = "stopped"
+                        m.VMs[i].IPAddress = ""
+                        return nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("VM not found: %s", vmName)</span>
+}
+
+// RestartVM simulates restarting a VM
+func (m *MockClient) RestartVM(vmName string) error <span class="cov0" title="0">{
+        if m.Fail["RestartVM"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock RestartVM failed")
+        }</span>
+
+        <span class="cov0" title="0">for i, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == vmName </span><span class="cov0" title="0">{
+                        m.VMs[i].Status = "running"
+                        return nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("VM not found: %s", vmName)</span>
+}
+
+// GetVMStatus returns the status of a specific VM
+func (m *MockClient) GetVMStatus(vmName string) (*synology.VM, error) <span class="cov0" title="0">{
+        if m.Fail["GetVMStatus"] </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("mock GetVMStatus failed")
+        }</span>
+
+        <span class="cov0" title="0">for _, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == vmName </span><span class="cov0" title="0">{
+                        return &amp;vm, nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil, fmt.Errorf("VM not found: %s", vmName)</span>
+}
+
+// CreateVM simulates creating a new VM
+func (m *MockClient) CreateVM(config synology.VMConfig) error <span class="cov0" title="0">{
+        if m.Fail["CreateVM"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock CreateVM failed")
+        }</span>
+
+        // Check if VM already exists
+        <span class="cov0" title="0">for _, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == config.Name </span><span class="cov0" title="0">{
+                        return fmt.Errorf("VM already exists: %s", config.Name)
+                }</span>
+        }
+
+        // Add new VM to mock list
+        <span class="cov0" title="0">newVM := synology.VM{
+                Name:    config.Name,
+                Status:  "stopped",
+                CPU:     config.CPU,
+                Memory:  config.Memory,
+                Storage: config.Storage,
+        }
+
+        m.VMs = append(m.VMs, newVM)
+        return nil</span>
+}
+
+// DeleteVM simulates deleting a VM
+func (m *MockClient) DeleteVM(vmName string) error <span class="cov0" title="0">{
+        if m.Fail["DeleteVM"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock DeleteVM failed")
+        }</span>
+
+        <span class="cov0" title="0">for i, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == vmName </span><span class="cov0" title="0">{
+                        // Remove VM from slice
+                        m.VMs = append(m.VMs[:i], m.VMs[i+1:]...)
+                        return nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("VM not found: %s", vmName)</span>
+}
+
+// ListTemplates returns the mock template list
+func (m *MockClient) ListTemplates() ([]synology.Template, error) <span class="cov0" title="0">{
+        if m.Fail["ListTemplates"] </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("mock ListTemplates failed")
+        }</span>
+        <span class="cov0" title="0">return m.Templates, nil</span>
+}
+
+// CreateTemplate simulates creating a new template
+func (m *MockClient) CreateTemplate(templateName, vmName string) error <span class="cov0" title="0">{
+        if m.Fail["CreateTemplate"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock CreateTemplate failed")
+        }</span>
+
+        // Check if VM exists
+        <span class="cov0" title="0">vmExists := false
+        for _, vm := range m.VMs </span><span class="cov0" title="0">{
+                if vm.Name == vmName </span><span class="cov0" title="0">{
+                        vmExists = true
+                        break</span>
+                }
+        }
+
+        <span class="cov0" title="0">if !vmExists </span><span class="cov0" title="0">{
+                return fmt.Errorf("source VM not found: %s", vmName)
+        }</span>
+
+        // Check if template already exists
+        <span class="cov0" title="0">for _, template := range m.Templates </span><span class="cov0" title="0">{
+                if template.Name == templateName </span><span class="cov0" title="0">{
+                        return fmt.Errorf("template already exists: %s", templateName)
+                }</span>
+        }
+
+        // Add new template
+        <span class="cov0" title="0">newTemplate := synology.Template{
+                Name:        templateName,
+                Description: fmt.Sprintf("Template created from %s", vmName),
+                OS:          "Linux", // Default for mock
+        }
+
+        m.Templates = append(m.Templates, newTemplate)
+        return nil</span>
+}
+
+// DeleteTemplate simulates deleting a template
+func (m *MockClient) DeleteTemplate(templateName string) error <span class="cov0" title="0">{
+        if m.Fail["DeleteTemplate"] </span><span class="cov0" title="0">{
+                return fmt.Errorf("mock DeleteTemplate failed")
+        }</span>
+
+        <span class="cov0" title="0">for i, template := range m.Templates </span><span class="cov0" title="0">{
+                if template.Name == templateName </span><span class="cov0" title="0">{
+                        // Remove template from slice
+                        m.Templates = append(m.Templates[:i], m.Templates[i+1:]...)
+                        return nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("template not found: %s", templateName)</span>
+}
+
+// SetFailure configures the mock to fail specific method calls
+func (m *MockClient) SetFailure(method string, shouldFail bool) <span class="cov0" title="0">{
+        m.Fail[method] = shouldFail
+}</span>
+
+// ResetFailures clears all failure configurations
+func (m *MockClient) ResetFailures() <span class="cov0" title="0">{
+        m.Fail = make(map[string]bool)
+}</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

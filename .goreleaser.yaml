@@ -1,0 +1,101 @@
+# GoReleaser configuration for syno-vm
+project_name: syno-vm
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    main: ./cmd/syno-vm
+    binary: syno-vm
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+    - goos: windows
+      format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+# Homebrew tap configuration
+brews:
+  - name: syno-vm
+    tap:
+      owner: scttfrdmn
+      name: homebrew-syno-vm
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    folder: Formula
+    homepage: "https://github.com/scttfrdmn/syno-vm"
+    description: "A CLI tool for managing Synology Virtual Machine Manager"
+    license: "MIT"
+    test: |
+      system "#{bin}/syno-vm --version"
+    install: |-
+      bin.install "syno-vm"
+
+# Docker images
+dockers:
+  - image_templates:
+      - "ghcr.io/scttfrdmn/syno-vm:{{ .Tag }}"
+      - "ghcr.io/scttfrdmn/syno-vm:v{{ .Major }}"
+      - "ghcr.io/scttfrdmn/syno-vm:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/scttfrdmn/syno-vm:latest"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+    use: buildx
+    goos: linux
+    goarch: amd64
+
+# GitHub release configuration
+release:
+  prerelease: auto
+  draft: false
+
+# Universal binaries for macOS
+universal_binaries:
+  - replace: true

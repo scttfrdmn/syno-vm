@@ -1,0 +1,56 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+bin/
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*.test
+coverage.out
+coverage.html
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Config files with secrets
+config.yaml
+*.pem
+*.key
+!*.key.example
+
+# Documentation (already copied via COPY command)
+docs/
+*.md
+!README.md
+
+# CI files
+.github/
+.golangci.yml
+
+# Docker files
+Dockerfile*
+.dockerignore
