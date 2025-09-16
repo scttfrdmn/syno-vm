@@ -1,78 +1,84 @@
-# GoReleaser configuration for syno-vm
+version: 2
 project_name: syno-vm
 
 before:
   hooks:
     - go mod tidy
-    - go generate ./...
+    - go test ./...
 
 builds:
-  - env:
+  - id: syno-vm
+    binary: syno-vm
+    main: ./cmd/syno-vm
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
-      - windows
       - darwin
+      - windows
     goarch:
-      - "386"
       - amd64
-      - arm
       - arm64
     ignore:
       - goos: windows
-        goarch: arm
-      - goos: windows
         goarch: arm64
-    main: ./cmd/syno-vm
-    binary: syno-vm
-    ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser
 
 archives:
-  - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of uname.
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
+  - id: syno-vm
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
-    - goos: windows
-      format: zip
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - docs/
 
 checksum:
   name_template: 'checksums.txt'
 
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
-
 changelog:
   sort: asc
+  use: github
   filters:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
 
-# Homebrew tap configuration
+release:
+  github:
+    owner: scttfrdmn
+    name: syno-vm
+  name_template: "v{{ .Version }}"
+  draft: false
+  prerelease: auto
+
 brews:
   - name: syno-vm
-    tap:
+    repository:
       owner: scttfrdmn
       name: homebrew-syno-vm
+      branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    folder: Formula
-    homepage: "https://github.com/scttfrdmn/syno-vm"
-    description: "A CLI tool for managing Synology Virtual Machine Manager"
-    license: "MIT"
+    directory: Formula
+    homepage: https://github.com/scttfrdmn/syno-vm
+    description: "A command-line tool for managing Synology Virtual Machine Manager"
+    license: MIT
     test: |
       system "#{bin}/syno-vm --version"
     install: |-
       bin.install "syno-vm"
 
-# Docker images
 dockers:
   - image_templates:
       - "ghcr.io/scttfrdmn/syno-vm:{{ .Tag }}"
@@ -90,12 +96,3 @@ dockers:
     use: buildx
     goos: linux
     goarch: amd64
-
-# GitHub release configuration
-release:
-  prerelease: auto
-  draft: false
-
-# Universal binaries for macOS
-universal_binaries:
-  - replace: true
